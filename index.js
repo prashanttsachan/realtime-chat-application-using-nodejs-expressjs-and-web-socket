@@ -9,4 +9,6 @@ app.get('/:page', function (req, res) {
 	res.render(req.params.page, { title: 'Hey', message: 'Hello there!' })
 });
 
-app.listen(8080);
+app.listen(8080, function(){
+  console.log("Listening on port 8080!")
+});
