@@ -9,7 +9,7 @@ block content
 				each error in errors
 					li= error.message
 		div.row
-			form.col-md-6.col-md-offset-3(action="#", method="post")
+			form.col-md-6.col-md-offset-3(action="/newUser", method="post")
 				p
 					label.col-md-4(for='name') Name
 					input.col-md-8(id='name', name='name', type='text')
@@ -23,4 +23,4 @@ block content
 					p.col-md-4
 						input(class='btn btn-success', type='submit', value='Create New User')
 					p.col-md-8
-						a(class='btn btn-primary', href='/users/login') Login Here
+						a(class='btn btn-primary', href='/login') Login Here

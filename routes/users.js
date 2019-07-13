@@ -1,94 +1,128 @@
-var express = require('express');
-var router = express.Router();
+var express         = require('express');
+var path            = require('path');
+var app             = express();
+var server          = require('http').Server(app);
+var io              = require('socket.io')(server);
+var bodyParser      = require('body-parser');
+var session 		= require('express-session');
+// ======================Mysql DataBase ========================
+var mysql           = require('mysql');
+var con = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "root",
+    database: "NodeDataBase"
+});
+con.connect(function (err) {
+    if (err) throw err;
+    console.log("Connected!");
+});
+// =========================================================
+users = [];
+connections = [];
+var username;
 
-router.get('/:page', function(req, res, next) {
-	res.render(req.params.page, {page: 'Users Page', title: "New User registration" });
+
+
+app.use(express.static(path.join(__dirname, 'www')));
+app.use( bodyParser.json() );
+app.use(bodyParser.urlencoded({ extended: true}));
+app.use(session({secret: 'tom-riddle'}));
+
+
+app.get('/' , function (req , res) {
+    authenticate(req , res);
 });
 
-module.exports = router;
-//var Book = require("../models").Book;
-//const Sequelize = require('sequelize');
-//const Op = Sequelize.Op;
-
-/* GET books listing. */
-//router.get('/:page', function(req, res, next) {
-//	res.render("books/index", {books: books, title: "List of Books" });
-	//Book.findAll({order: [["Year", "DESC"]]}).then(function(books){
-	//	res.render("books/index", {books: books, title: "List of Books" });
-	//}).catch(function(error){
-	//	res.send(500, error);
-	//});
-//});
-
-/* Create a new book form. */
-//router.get('/new-book', function(req, res, next) {
-//  res.render("books/new-book", {book: {}, title: "New Book"});
-//});
-
-/* POST create book.
-router.post('/', function(req, res, next) {
-  Book.create(req.body).then(function(book) {
-    res.redirect("/books/" + book.id);
-  }).catch(function(error){
-      if(error.name === "SequelizeValidationError") {
-        res.render("books/new-book", {book: Book.build(req.body), errors: error.errors, title: "New Book"})
-      } else {
-        throw error;
-      }
-  }).catch(function(error){
-      res.send(500, error);
-   });
+app.get('/chat_start' , function (req , res) {
+    authenticate(req , res);
 });
 
-/* GET individual book.
-router.get("/:id", function(req, res, next){
-  Book.findByPk(req.params.id).then(function(book){
-    if(book) {
-      res.render("books/update-book", {book: book, title: book.title});
-    } else {
-      const err = new Error('Book Not Found');
-        res.render("error", { error: err });
-    }
-  }).catch(function(error){
-      res.send(500, error);
-   });
-}); */
 
-/* PUT update book.
-router.put("/:id", function(req, res, next){
-  Book.findByPk(req.params.id).then(function(book){
-    if(book) {
-      return book.update(req.body);
-    } else {
-      res.send(404);
-    }
-    //Updated book
-  }).then(function(book){
-    res.redirect("/books/" + book.id);
-  }).catch(function(error){
-      if(error.name === "SequelizeValidationError") {
-        var book = Book.build(req.body);
-        book.id = req.params.id;
-        res.render("books/update-book", {book: book, errors: error.errors, title: "Update Book"})
-      } else {
-        throw error;
-      }
-  }).catch(function(error){
-      res.send(500, error);
-   });
-}); */
+app.get('/login' , function (req , res) {
+    authenticate(req , res);
+});
 
-/* Delete individual book.
-router.delete("/:id", function(req, res, next){
-  Book.findByPk(req.params.id).then(function(book){
-    if(book) {
-      return book.destroy();
-    } else {
-      res.send(404);
+app.post('/login' , function (req , res) {
+    login(req , res);
+});
+app.get('/logout', function (req, res) {
+    delete req.session.user;
+    res.redirect('/login');
+});
+
+function chat_start() {
+// ===================================Sockets starts  =========================
+    io.sockets.on('connection', function (socket) {
+        connections.push(socket);
+        console.log("Connected:  %s Socket running", connections.length);
+// ====================Disconnect==========================================
+        socket.on('disconnect', function (data) {
+            connections.splice(connections.indexOf(data), 1);
+            console.log('Disconnected : %s sockets running', connections.length);
+        });
+// ==================initilize data and show================================
+        socket.on('initial-messages', function (data) {
+            var sql = "SELECT * FROM message ";
+            con.query(sql, function (err, result, fields) {
+                var jsonMessages = JSON.stringify(result);
+                // console.log(jsonMessages);
+                io.sockets.emit('initial-message', {msg: jsonMessages});
+            });
+        });
+        socket.on('username', function (data) {
+            io.sockets.emit('username', {username: username});
+        });
+
+//   ============== Send and Save Messages=====================================
+        socket.on('send-message', function (data) {
+            var sql = "INSERT INTO message (message , user) VALUES ('" + data+ "' , '"+username+"')";
+            con.query(sql, function (err, result) {
+                if (err) throw err;
+                console.log("1 record inserted");
+            });
+            io.sockets.emit('new-message', {msg: data , username : username});
+        })
+    })
+}
+chat_start();
+
+
+function login(req,res){
+    var post = req.body;
+     username  = post.user;
+    var password = post.password;
+    console.log(username);
+    var sql = "SELECT * FROM login WHERE username='" + username+"'";
+    con.query(sql, function (err, result, fields) {
+        var jsonString = JSON.stringify(result);
+        var jsonData = JSON.parse(jsonString);
+        if(jsonData[0].password === password) {
+            console.log("User Identified");
+            req.session.user = post.user;
+            username = post.user;
+            res.redirect("/chat_start");
+        }else  {
+            console.log("user not Identified");
+            res.redirect("/login");
+        }
+    })
+}
+
+function authenticate(req,res){
+    console.log("authenticate called");
+    if (!req.session.user) {
+        res.sendFile(__dirname + '/www/login.html');
     }
-  }).then(function(){
-      res.redirect("/books");
-  }).catch(function(error){
-      res.send(500, error);
-   });
-}); */
+    else {
+        console.log(req.session.user);
+        username = req.session.user;
+        res.sendFile(__dirname + '/www/chat.html');
+    }
+}
+server.listen(3000, function(){
+    console.log('listening on *:3000');
+});
+
+
+

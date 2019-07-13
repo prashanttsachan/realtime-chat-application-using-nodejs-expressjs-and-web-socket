@@ -9,12 +9,12 @@ block content
 				each error in errors
 					li= error.message
 		div.row
-			form.col-md-6.col-md-offset-3(action="#", method="post")
+			form.col-md-6.col-md-offset-3(action="/login", method="post")
 				p
-					label.col-md-4(for='contact') Contact
-					input.col-md-8(id='contact', name='contact', type='text')
+					label.col-md-4(for='email') E-mail
+					input.col-md-8(id='email', name='email', type='text')
 				div.row
 					p.col-md-4
 						input(class='btn btn-success', type='submit', value='Login')
 					p.col-md-8
-						a(class='btn btn-primary', href='/users/newUser') Create your account
+						a(class='btn btn-primary', href='/newUser') Create your account
