@@ -1,0 +1,100 @@
+<!--
+	* Created by Prashant on 14-07-2019.
+	* https://github.com/psachan190
+	* https://www.linkedin.com/in/psachan190
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<link href="bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+	<link href="styles/chat.css" rel="stylesheet">
+</head>
+<body  style="background: #4e342e;">
+	<nav class="navbar navbar-default">
+	  <div class="container-fluid">
+		<div class="navbar-header">
+		  <a class="navbar-brand" href="#"><div id="username" >Hello user!</div></a>
+		</div>
+		<ul class="nav navbar-nav">
+			<li class="active"><a href="/logout">Logout Here</a></li>
+		</ul>
+	  </div>
+	</nav>
+<div class="container">
+	<div class="col-sm-6 col-sm-offset-3 frame">
+		<div class="chat-box" ><ul class="chat list-group" style="overflow-y:scroll;" id="chat"></ul></div>
+		<div>
+			<form id="messageForm" autocomplete="off" style="width:100%;">
+				<div class="status" style="color: red;"></div>
+				<input type="text" class="mytext" style="width:100%;" id="message" placeholder="Message">
+			</form>    
+		</div> 
+	</div>    
+</div>
+<script src="/jquery/dist/jquery.js" > </script>
+<script src="/socket.io/socket.io.js" > </script>
+
+<script>
+
+
+    $(function () {
+
+        var socket = io.connect();
+        var message = $('#message');
+        var messageForm = $('#messageForm');
+        var chat = $('#chat');
+        var username = $('#username');
+        var user ;
+
+//        username.text('narendra');
+
+        var initial = 0;
+//================initilize message=======
+        socket.emit('username' , "prashant");
+        socket.emit('initial-messages' , "initial");
+//========================================
+		messageForm.submit(function (data) {
+			data.preventDefault();
+			socket.emit('send-message' , message.val());
+			$('input').val('');
+        });
+        socket.on('new-message' , function (data) {
+			if(data.username === user) {
+				chat.append('<li > <div class="msj-rta macro"> <div class="text text-l">' + data.msg + '</div></div></li>');
+			}else {
+				chat.append('<li > <div class="msj macro"> <div class="text text-r">'+data.username+'  :  ' + data.msg + '</div></div></li>');
+			}
+			$('.chat').scrollTop($("ul.chat").prop('scrollHeight'));
+        });
+        socket.on('initial-message' , function (data) {
+            if(initial === 0) {
+                var arr = $.parseJSON(data.msg);
+                for (var i = 0; i < arr.length; i++) {
+                    if(arr[i].user === user) {
+                        chat.append('<li > <div class="msj-rta macro"> <div class="text text-l">' + arr[i].message + '</div></div></li>');
+                    }else {
+                        chat.append('<li > <div class="msj macro"> <div class="text text-r">' +arr[i].user +'  :   '+ arr[i].message + '</div></div></li>');
+                    }
+
+                }
+                $('.chat').scrollTop($("ul.chat").prop('scrollHeight'));
+                initial++;
+            }
+        });
+        socket.on('username' , function (data) {
+            username.text(data.username);
+            user = data.username;
+        });
+		socket.on('typing' , function (data) {
+			$('.status').html(data);
+        });
+		$('#message').focus( function () {
+			socket.emit('typing', user + ' is typing...');
+		});
+		$('#message').focusout( function () {
+			socket.emit('typing', '');
+		});
+    });
+</script>
+</body>
+</html>
