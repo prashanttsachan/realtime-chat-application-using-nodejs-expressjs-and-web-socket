@@ -1,15 +1,14 @@
 /**
-	Created by Parshant Sachan on 12th July, 2019.
-	https://github.com/psachan190
-	https://linkedin.com/in/psachan190
-**/
+ * Created by sonu on 11/7/17.
+ */
+
 
 var mysql = require('mysql');
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "root",
-    database: "chatapp"
+    password: "",
+    database: "NodeDataBase"
 });
 
 con.connect(function(err) {

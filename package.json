@@ -1,33 +1,21 @@
 {
-  "name": "chatapp",
+  "name": "chat_app",
   "version": "1.0.0",
-  "description": "Real time chat application using nodejs, pug, mysql, bootsrap and express js",
-  "main": "index.js",
+  "description": "",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/psachan190/realtime-chat-application-using-nodejs-expressjs-and-web-socket.git"
-  },
-  "author": "Prashant Sachan and Abhishek Verma",
+  "author": "narendra",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/psachan190/realtime-chat-application-using-nodejs-expressjs-and-web-socket/issues"
-  },
-  "homepage": "https://github.com/psachan190/realtime-chat-application-using-nodejs-expressjs-and-web-socket#readme",
   "dependencies": {
     "body-parser": "^1.19.0",
-    "bootstrap": "^4.3.1",
-    "connect": "^3.7.0",
-    "cookie-parser": "^1.4.4",
-    "express": "^4.17.1",
-    "express-session": "^1.16.2",
-    "jquery": "^1.9.1",
-    "method-override": "^3.0.0",
-    "morgan": "^1.9.1",
-    "mysql": "^2.17.1",
-    "popper.js": "^1.14.7",
-    "pug": "^2.0.4"
+    "bootstrap": "^3.3.7",
+    "express": "^4.15.3",
+    "express-session": "^1.15.3",
+    "jquery": "^3.2.1",
+    "mysql": "^2.13.0",
+    "path": "^0.12.7",
+    "socket.io": "*"
   }
 }
