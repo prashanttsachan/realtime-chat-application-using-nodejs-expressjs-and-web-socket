@@ -26,6 +26,7 @@
 		<div>
 			<form id="messageForm" autocomplete="off" style="width:100%;">
 				<div class="status" style="color: red;"></div>
+				<input type="hidden" name="username" class="username" value="">
 				<input type="text" class="mytext" style="width:100%;" id="message" placeholder="Message">
 			</form>    
 		</div> 
@@ -46,16 +47,16 @@
         var username = $('#username');
         var user ;
 
-//        username.text('narendra');
+//        username.text('prashant');
 
         var initial = 0;
 //================initilize message=======
         socket.emit('username' , "prashant");
         socket.emit('initial-messages' , "initial");
 //========================================
-		messageForm.submit(function (data) {
-			data.preventDefault();
-			socket.emit('send-message' , message.val());
+        messageForm.submit(function (data) {
+           data.preventDefault();
+           socket.emit('send-message' , message.val(), username.html());
 			$('input').val('');
         });
         socket.on('new-message' , function (data) {
@@ -97,4 +98,7 @@
     });
 </script>
 </body>
+
+
+
 </html>
